@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2D6A2F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OSL Calc">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>OSL Calc</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap');
+
+  :root {
+    --green: #2D6A2F;
+    --green-mid: #388E3C;
+    --green-light: #4CAF50;
+    --green-pale: #E8F5E9;
+    --soil: #5D4037;
+    --soil-light: #8D6E63;
+    --cream: #FAFAF5;
+    --shadow: 0 4px 24px rgba(45,106,47,0.13);
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    padding: 0 0 50px 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--green);
+    color: white;
+    padding: 48px 24px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+  }
+
+  .lang-toggle {
+    position: absolute;
+    top: 16px; right: 16px;
+    display: flex;
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .lang-btn {
+    padding: 5px 12px;
+    border-radius: 16px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .lang-btn.active {
+    background: white;
+    color: var(--green);
+  }
+
+  .header-icon { font-size: 32px; margin-bottom: 8px; display: block; }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+
+  header p {
+    font-size: 13px;
+    opacity: 0.75;
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  .offline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 10px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .offline-badge::before { content: '●'; color: #69F0AE; font-size: 8px; }
+
+  /* CONTAINER */
+  .container { padding: 20px 16px; max-width: 480px; margin: 0 auto; }
+
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--soil-light);
+    margin-bottom: 16px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* UNIT TOGGLE */
+  .unit-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+
+  .unit-btn {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #E0E0E0;
+    border-radius: 10px;
+    background: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .unit-btn.active {
+    border-color: var(--green-light);
+    background: var(--green-pale);
+    color: var(--green);
+  }
+
+  /* INPUTS */
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 7px;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #E8E8E8;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #FAFAFA;
+  }
+
+  input[type="number"]:focus {
+    border-color: var(--green-light);
+    background: white;
+  }
+
+  .unit-label {
+    font-size: 12px;
+    color: #999;
+    margin-top: 6px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .sprayer-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .sprayer-row input {
+    width: 90px;
+    font-size: 18px;
+    padding: 12px 14px;
+  }
+
+  .sprayer-row span {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  /* BUTTON */
+  .calc-btn {
+    width: 100%;
+    padding: 17px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+  }
+
+  .calc-btn:active { transform: scale(0.98); background: #1b4f1d; }
+
+  /* RESULTS */
+  .results { display: none; }
+  .results.show { display: block; }
+
+  .result-hero {
+    background: var(--green);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    margin-bottom: 12px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-hero::before {
+    content: '🌱';
+    position: absolute;
+    right: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 52px;
+    opacity: 0.18;
+  }
+
+  .result-hero-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.7;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .result-hero-value {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .result-hero-unit { font-size: 15px; opacity: 0.8; font-weight: 400; margin-top: 4px; }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .result-item {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 14px;
+    box-shadow: var(--shadow);
+  }
+
+  .result-item-icon { font-size: 22px; margin-bottom: 8px; }
+
+  .result-item-value {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--green);
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .result-item-label {
+    font-size: 10px;
+    color: #888;
+    margin-top: 4px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .result-item-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+  /* FORMULA CARD */
+  .formula-card {
+    background: var(--green-pale);
+    border-radius: var(--radius);
+    padding: 16px;
+    border-left: 4px solid var(--green-light);
+    margin-bottom: 12px;
+  }
+
+  .formula-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(76,175,80,0.15);
+    font-size: 13px;
+  }
+
+  .formula-row:last-child { border-bottom: none; }
+  .formula-row span:first-child { color: var(--soil); font-weight: 500; }
+  .formula-row span:last-child {
+    color: var(--green);
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+  }
+
+  /* LAND SUMMARY */
+  .land-summary {
+    background: #F3E5F5;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: #6A1B9A;
+    font-weight: 600;
+    display: none;
+  }
+  .land-summary.show { display: block; }
+
+  .reset-btn {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: var(--soil-light);
+    border: 2px solid #E0E0E0;
+    border-radius: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:active { background: #f5f5f5; }
+
+  /* INSTALL BANNER */
+  #installBanner {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--green);
+    color: white;
+    padding: 16px 20px;
+    z-index: 999;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+  }
+
+  #installBanner.show { display: flex; }
+
+  #installBanner p { flex: 1; font-size: 13px; font-weight: 500; }
+
+  #installBtn {
+    background: white;
+    color: var(--green);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  #dismissBanner {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
+    <button class="lang-btn" onclick="setLang('rw')" id="btn-rw">RW</button>
+  </div>
+  <span class="header-icon">🌾</span>
+  <h1 id="h-title">OSL Field Calculator</h1>
+  <p id="h-sub">Calculate OSL caps & water for any land size</p>
+  <div class="offline-badge" id="h-offline">Works Offline</div>
+</header>
+
+<div class="container">
+
+  <!-- Input Card -->
+  <div class="card">
+    <div class="card-title" id="lbl-landsize">Land Size</div>
+
+    <div class="unit-toggle">
+      <button class="unit-btn active" onclick="setUnit('ha')" id="btn-ha" data-en="Hectares (ha)" data-rw="Hegitare (ha)">Hectares (ha)</button>
+      <button class="unit-btn" onclick="setUnit('sqm')" id="btn-sqm" data-en="Square Metres (m²)" data-rw="Metero kare (m²)">Square Metres (m²)</button>
+    </div>
+
+    <div class="input-group" style="margin-bottom:16px;">
+      <label id="input-label">Enter land size in hectares</label>
+      <input type="number" id="landInput" placeholder="e.g. 0.5" min="0" step="any" inputmode="decimal">
+      <div class="unit-label" id="unit-hint">Decimal for fractions → 0.5 ha = half hectare</div>
+    </div>
+
+    <div class="input-group">
+      <div class="card-title" id="lbl-sprayer" style="margin-bottom:10px;">Sprayer Tank Size</div>
+      <div class="sprayer-row">
+        <input type="number" id="sprayerSize" value="20" min="1" step="1" inputmode="numeric">
+        <span id="lbl-litres">litres per knapsack sprayer</span>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()" id="btn-calc" style="margin-top:16px;">Calculate OSL & Water →</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+
+    <div class="land-summary" id="landSummary"></div>
+
+    <div class="result-hero">
+      <div class="result-hero-label" id="res-caps-label">OSL Bottle Caps Needed</div>
+      <div class="result-hero-value" id="res-caps">—</div>
+      <div class="result-hero-unit" id="res-caps-unit">caps (1 cap = 4g)</div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="result-item-icon">💧</div>
+        <div class="result-item-value" id="res-water">—</div>
+        <div class="result-item-label" id="res-water-label">Litres Water</div>
+        <div class="result-item-sub" id="res-water-sub"></div>
+      </div>
+      <div class="result-item">
+        <div class="result-item-icon">🎒</div>
+        <div class="result-item-value" id="res-tanks">—</div>
+        <div class="result-item-label" id="res-tanks-label">Sprayer Tanks</div>
+        <div class="result-item-sub" id="res-tanks-sub"></div>
+      </div>
+      <div class="result-item">
+        <div class="result-item-icon">⚖️</div>
+        <div class="result-item-value" id="res-grams">—</div>
+        <div class="result-item-label" id="res-grams-label">Grams OSL</div>
+        <div class="result-item-sub" id="res-grams-sub">total weight</div>
+      </div>
+      <div class="result-item">
+        <div class="result-item-icon">🔢</div>
+        <div class="result-item-value" id="res-cpt">—</div>
+        <div class="result-item-label" id="res-cpt-label">Caps / Tank</div>
+        <div class="result-item-sub" id="res-cpt-sub">per sprayer refill</div>
+      </div>
+    </div>
+
+    <div class="formula-card">
+      <div class="card-title" id="lbl-ref">Rate Reference</div>
+      <div class="formula-row">
+        <span id="ref-osl-label">OSL per hectare</span>
+        <span>250g = 62.5 caps</span>
+      </div>
+      <div class="formula-row">
+        <span id="ref-water-label">Water per hectare</span>
+        <span>400 litres</span>
+      </div>
+      <div class="formula-row">
+        <span id="ref-cap-label">1 cap weight</span>
+        <span>4g</span>
+      </div>
+      <div class="formula-row">
+        <span id="ref-sprayer-label">Sprayer tank</span>
+        <span id="ref-sprayer-val">20 litres</span>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="reset()" id="btn-reset">↺ New Calculation</button>
+  </div>
+
+</div>
+
+<!-- Install Banner -->
+<div id="installBanner">
+  <p id="installMsg">Install OSL Calc on your phone for offline use</p>
+  <button id="installBtn">Install</button>
+  <button id="dismissBanner" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
+</div>
+
+<script>
+// ─── TRANSLATIONS ───────────────────────────────────────────────
+const T = {
+  en: {
+    title: 'OSL Field Calculator',
+    sub: 'Calculate OSL caps & water for any land size',
+    offline: 'Works Offline',
+    landsize: 'Land Size',
+    sprayer: 'Sprayer Tank Size',
+    litres: 'litres per knapsack sprayer',
+    calc: 'Calculate OSL & Water →',
+    reset: '↺ New Calculation',
+    ref: 'Rate Reference',
+    caps_label: 'OSL Bottle Caps Needed',
+    caps_unit: 'caps (1 cap = 4g)',
+    water_label: 'Litres Water',
+    tanks_label: 'Sprayer Tanks',
+    grams_label: 'Grams OSL',
+    grams_sub: 'total weight',
+    cpt_label: 'Caps / Tank',
+    cpt_sub: 'per sprayer refill',
+    ref_osl: 'OSL per hectare',
+    ref_water: 'Water per hectare',
+    ref_cap: '1 cap weight',
+    ref_sprayer: 'Sprayer tank',
+    hint_ha: 'Decimal for fractions → 0.5 ha = half hectare',
+    hint_sqm: '10,000 m² = 1 hectare',
+    label_ha: 'Enter land size in hectares',
+    label_sqm: 'Enter land size in square metres',
+    placeholder_ha: 'e.g. 0.5',
+    placeholder_sqm: 'e.g. 5000',
+    sqm_summary: 'm² = ',
+    ha_suffix: ' hectares',
+    install: 'Install OSL Calc on your phone for offline use',
+    alert: 'Please enter a valid land size.',
+    each: 'each'
+  },
+  rw: {
+    title: 'Ikibara cya OSL',
+    sub: 'Bara udufuniko twa OSL n\'amazi ku butaka bwose',
+    offline: 'Ikora idakeneye interineti',
+    landsize: 'Ingano y\'ubutaka',
+    sprayer: 'Ingano y\'ipompo',
+    litres: 'litiro muri buri pompo',
+    calc: 'Karikira →',
+    reset: '↺ Karikira bushyashya',
+    ref: 'Umusoro w\'ibanze',
+    caps_label: 'Udufuniko dukenewe',
+    caps_unit: 'udufuniko (1 = 4g)',
+    water_label: 'Amazi Akenewe',
+    tanks_label: 'Ipompo',
+    grams_label: 'Garamu z\'OSL',
+    grams_sub: 'ibiro byose',
+    cpt_label: 'Udufuniko/Pompo',
+    cpt_sub: 'kuri buri pompo',
+    ref_osl: 'OSL kuri hegitare',
+    ref_water: 'Amazi kuri hegitare',
+    ref_cap: 'Agaciro k\'igifuniko',
+    ref_sprayer: 'Ipompo',
+    hint_ha: 'Injira desimale → 0.5 ha = idengakimwe',
+    hint_sqm: '10,000 m² = hegitare 1',
+    label_ha: 'Injiza ingano y\'ubutaka mu hegitare',
+    label_sqm: 'Injiza ingano y\'ubutaka mu metero kare',
+    placeholder_ha: 'urugero: 0.5',
+    placeholder_sqm: 'urugero: 5000',
+    sqm_summary: 'm² = ',
+    ha_suffix: ' hegitare',
+    install: 'Shyira OSL Calc kuri telephone yawe',
+    alert: 'Injiza ingano y\'ubutaka.',
+    each: 'buri imwe'
+  }
+};
+
+// ─── STATE ───────────────────────────────────────────────────────
+let lang = 'en';
+let currentUnit = 'ha';
+
+// ─── LANGUAGE ────────────────────────────────────────────────────
+function setLang(l) {
+  lang = l;
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.getElementById('btn-rw').classList.toggle('active', l === 'rw');
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const t = T[lang];
+  document.getElementById('h-title').textContent = t.title;
+  document.getElementById('h-sub').textContent = t.sub;
+  document.getElementById('h-offline').textContent = t.offline;
+  document.getElementById('lbl-landsize').textContent = t.landsize;
+  document.getElementById('lbl-sprayer').textContent = t.sprayer;
+  document.getElementById('lbl-litres').textContent = t.litres;
+  document.getElementById('btn-calc').textContent = t.calc;
+  document.getElementById('btn-reset').textContent = t.reset;
+  document.getElementById('lbl-ref').textContent = t.ref;
+  document.getElementById('res-caps-label').textContent = t.caps_label;
+  document.getElementById('res-caps-unit').textContent = t.caps_unit;
+  document.getElementById('res-water-label').textContent = t.water_label;
+  document.getElementById('res-tanks-label').textContent = t.tanks_label;
+  document.getElementById('res-grams-label').textContent = t.grams_label;
+  document.getElementById('res-grams-sub').textContent = t.grams_sub;
+  document.getElementById('res-cpt-label').textContent = t.cpt_label;
+  document.getElementById('res-cpt-sub').textContent = t.cpt_sub;
+  document.getElementById('ref-osl-label').textContent = t.ref_osl;
+  document.getElementById('ref-water-label').textContent = t.ref_water;
+  document.getElementById('ref-cap-label').textContent = t.ref_cap;
+  document.getElementById('ref-sprayer-label').textContent = t.ref_sprayer;
+  document.getElementById('installMsg').textContent = t.install;
+
+  // Update unit buttons
+  document.getElementById('btn-ha').textContent = lang === 'en' ? 'Hectares (ha)' : 'Hegitare (ha)';
+  document.getElementById('btn-sqm').textContent = lang === 'en' ? 'Square Metres (m²)' : 'Metero kare (m²)';
+
+  // Update dynamic hint/label
+  updateUnitLabels();
+}
+
+// ─── UNIT TOGGLE ─────────────────────────────────────────────────
+function setUnit(unit) {
+  currentUnit = unit;
+  document.getElementById('btn-ha').classList.toggle('active', unit === 'ha');
+  document.getElementById('btn-sqm').classList.toggle('active', unit === 'sqm');
+  updateUnitLabels();
+  document.getElementById('landInput').value = '';
+  hideResults();
+}
+
+function updateUnitLabels() {
+  const t = T[lang];
+  const isHa = currentUnit === 'ha';
+  document.getElementById('input-label').textContent = isHa ? t.label_ha : t.label_sqm;
+  document.getElementById('unit-hint').textContent = isHa ? t.hint_ha : t.hint_sqm;
+  document.getElementById('landInput').placeholder = isHa ? t.placeholder_ha : t.placeholder_sqm;
+}
+
+// ─── CALCULATE ───────────────────────────────────────────────────
+function calculate() {
+  const val = parseFloat(document.getElementById('landInput').value);
+  const sprayerSize = parseFloat(document.getElementById('sprayerSize').value) || 20;
+  const t = T[lang];
+
+  if (!val || val <= 0) { alert(t.alert); return; }
+
+  const ha = currentUnit === 'sqm' ? val / 10000 : val;
+  const grams = ha * 250;
+  const caps = grams / 4;
+  const water = ha * 400;
+  const tanks = water / sprayerSize;
+  const cpt = caps / tanks;
+
+  document.getElementById('res-caps').textContent = Math.ceil(caps);
+  document.getElementById('res-water').textContent = Math.round(water);
+  document.getElementById('res-water-sub').textContent = `${ha.toFixed(3)} ha`;
+  document.getElementById('res-tanks').textContent = Math.ceil(tanks);
+  document.getElementById('res-tanks-sub').textContent = `${sprayerSize}L ${t.each}`;
+  document.getElementById('res-grams').textContent = Math.round(grams);
+  document.getElementById('res-cpt').textContent = cpt.toFixed(1);
+  document.getElementById('ref-sprayer-val').textContent = `${sprayerSize} litres`;
+
+  const summary = document.getElementById('landSummary');
+  if (currentUnit === 'sqm') {
+    summary.textContent = `${val.toLocaleString()} m² = ${ha.toFixed(4)} ha`;
+    summary.classList.add('show');
+  } else {
+    summary.classList.remove('show');
+  }
+
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function hideResults() {
+  document.getElementById('results').classList.remove('show');
+}
+
+function reset() {
+  document.getElementById('landInput').value = '';
+  hideResults();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('landInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') calculate();
+});
+
+// ─── PWA: SERVICE WORKER ─────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(err => console.log('SW failed:', err));
+  });
+}
+
+// ─── PWA: INSTALL PROMPT ─────────────────────────────────────────
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installBanner').classList.remove('show');
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
+</script>
+</body>
+</html>
