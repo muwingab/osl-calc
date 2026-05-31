@@ -1,8 +1,9 @@
 {
   "name": "OSL Calculator",
   "short_name": "OSL Calc",
-  "description": "Field calculator for OSL caps and water — ikibara cya OSL",
-  "start_url": "/",
+  "description": "Field calculator for OSL caps and water ",
+  "start_url": "/osl-calc/",
+  "scope": "/osl-calc/",
   "display": "standalone",
   "background_color": "#2D6A2F",
   "theme_color": "#2D6A2F",
