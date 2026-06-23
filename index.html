@@ -672,7 +672,7 @@ function calculate() {
   document.getElementById('res-water-sub').textContent = `${ha.toFixed(3)} ha`;
   document.getElementById('res-tanks').textContent = Math.ceil(tanks);
   document.getElementById('res-tanks-sub').textContent = `${sprayerSize}L ${t.each}`;
-  document.getElementById('res-grams').textContent = Math.round(grams);
+  document.getElementById('res-grams').textContent = grams.toFixed(5);;
   document.getElementById('res-cpt').textContent = cpt.toFixed(1);
   document.getElementById('ref-sprayer-val').textContent = `${sprayerSize} litres`;
 
