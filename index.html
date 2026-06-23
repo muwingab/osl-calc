@@ -443,6 +443,14 @@
       </div>
     </div>
 
+    <div class="input-group" style="margin-top:16px;">
+      <div class="card-title" id="lbl-frequency" style="margin-bottom:10px;">Spray Frequency</div>
+      <div class="sprayer-row">
+        <input type="number" id="frequency" value="1" min="1" step="1" inputmode="numeric">
+        <span id="lbl-times">times this season</span>
+      </div>
+    </div>
+
     <button class="calc-btn" onclick="calculate()" id="btn-calc" style="margin-top:16px;">Calculate OSL & Water →</button>
   </div>
 
@@ -502,6 +510,10 @@
         <span id="ref-sprayer-label">Sprayer tank</span>
         <span id="ref-sprayer-val">20 litres</span>
       </div>
+      <div class="formula-row">
+        <span id="ref-frequency-label">Spray frequency</span>
+        <span id="ref-frequency-val">1 time</span>
+      </div>
     </div>
 
     <button class="reset-btn" onclick="reset()" id="btn-reset">↺ New Calculation</button>
@@ -526,6 +538,8 @@ const T = {
     landsize: 'Land Size',
     sprayer: 'Sprayer Tank Size',
     litres: 'litres per knapsack sprayer',
+    frequency: 'Spray Frequency',
+    times: 'times this season',
     calc: 'Calculate OSL & Water →',
     reset: '↺ New Calculation',
     ref: 'Rate Reference',
@@ -541,6 +555,7 @@ const T = {
     ref_water: 'Water per hectare',
     ref_cap: '1 cap weight',
     ref_sprayer: 'Sprayer tank',
+    ref_frequency: 'Spray frequency',
     hint_ha: 'Decimal for fractions → 0.5 ha = half hectare',
     hint_sqm: '10,000 m² = 1 hectare',
     label_ha: 'Enter land size in hectares',
@@ -551,7 +566,9 @@ const T = {
     ha_suffix: ' hectares',
     install: 'Install OSL Calc on your phone for offline use',
     alert: 'Please enter a valid land size.',
-    each: 'each'
+    each: 'each',
+    time_singular: 'time',
+    time_plural: 'times'
   },
   rw: {
     title: 'Ikibara cya OSL',
@@ -560,6 +577,8 @@ const T = {
     landsize: 'Ingano y\'ubutaka',
     sprayer: 'Ingano y\'ipompo',
     litres: 'litiro muri buri pompo',
+    frequency: 'Inshuro uzatera',
+    times: 'inshuro muri iki gihembwe',
     calc: 'Karikira →',
     reset: '↺ Karikira bushyashya',
     ref: 'Umusoro w\'ibanze',
@@ -575,6 +594,7 @@ const T = {
     ref_water: 'Amazi kuri hegitare',
     ref_cap: 'Agaciro k\'igifuniko',
     ref_sprayer: 'Ipompo',
+    ref_frequency: 'Inshuro uzatera',
     hint_ha: 'Injira desimale → 0.5 ha = idengakimwe',
     hint_sqm: '10,000 m² = hegitare 1',
     label_ha: 'Injiza ingano y\'ubutaka mu hegitare',
@@ -585,7 +605,9 @@ const T = {
     ha_suffix: ' hegitare',
     install: 'Shyira OSL Calc kuri telephone yawe',
     alert: 'Injiza ingano y\'ubutaka.',
-    each: 'buri imwe'
+    each: 'buri imwe',
+    time_singular: 'inshuro',
+    time_plural: 'inshuro'
   }
 };
 
@@ -609,6 +631,8 @@ function applyTranslations() {
   document.getElementById('lbl-landsize').textContent = t.landsize;
   document.getElementById('lbl-sprayer').textContent = t.sprayer;
   document.getElementById('lbl-litres').textContent = t.litres;
+  document.getElementById('lbl-frequency').textContent = t.frequency;
+  document.getElementById('lbl-times').textContent = t.times;
   document.getElementById('btn-calc').textContent = t.calc;
   document.getElementById('btn-reset').textContent = t.reset;
   document.getElementById('lbl-ref').textContent = t.ref;
@@ -624,6 +648,7 @@ function applyTranslations() {
   document.getElementById('ref-water-label').textContent = t.ref_water;
   document.getElementById('ref-cap-label').textContent = t.ref_cap;
   document.getElementById('ref-sprayer-label').textContent = t.ref_sprayer;
+  document.getElementById('ref-frequency-label').textContent = t.ref_frequency;
   document.getElementById('installMsg').textContent = t.install;
 
   // Update unit buttons
@@ -656,25 +681,27 @@ function updateUnitLabels() {
 function calculate() {
   const val = parseFloat(document.getElementById('landInput').value);
   const sprayerSize = parseFloat(document.getElementById('sprayerSize').value) || 20;
+  const frequency = parseInt(document.getElementById('frequency').value) || 1;
   const t = T[lang];
 
   if (!val || val <= 0) { alert(t.alert); return; }
 
   const ha = currentUnit === 'sqm' ? val / 10000 : val;
-  const grams = ha * 250;
+  const grams = ha * 250 * frequency;
   const caps = grams / 4;
-  const water = ha * 400;
+  const water = ha * 400 * frequency;
   const tanks = water / sprayerSize;
   const cpt = caps / tanks;
 
   document.getElementById('res-caps').textContent = Math.ceil(caps);
   document.getElementById('res-water').textContent = Math.round(water);
-  document.getElementById('res-water-sub').textContent = `${ha.toFixed(3)} ha`;
+  document.getElementById('res-water-sub').textContent = `${ha.toFixed(3)} ha × ${frequency} ${frequency === 1 ? t.time_singular : t.time_plural}`;
   document.getElementById('res-tanks').textContent = Math.ceil(tanks);
   document.getElementById('res-tanks-sub').textContent = `${sprayerSize}L ${t.each}`;
-  document.getElementById('res-grams').textContent = grams.toFixed(5);;
+  document.getElementById('res-grams').textContent = grams;
   document.getElementById('res-cpt').textContent = cpt.toFixed(1);
   document.getElementById('ref-sprayer-val').textContent = `${sprayerSize} litres`;
+  document.getElementById('ref-frequency-val').textContent = `${frequency} ${frequency === 1 ? t.time_singular : t.time_plural}`;
 
   const summary = document.getElementById('landSummary');
   if (currentUnit === 'sqm') {
@@ -694,6 +721,7 @@ function hideResults() {
 
 function reset() {
   document.getElementById('landInput').value = '';
+  document.getElementById('frequency').value = '1';
   hideResults();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
