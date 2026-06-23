@@ -693,7 +693,7 @@ function calculate() {
   const tanks = water / sprayerSize;
   const cpt = caps / tanks;
 
-  document.getElementById('res-caps').textContent = Math.ceil(caps);
+  document.getElementById('res-caps').textContent = caps.toFixed(1);
   document.getElementById('res-water').textContent = Math.round(water);
   document.getElementById('res-water-sub').textContent = `${ha.toFixed(3)} ha × ${frequency} ${frequency === 1 ? t.time_singular : t.time_plural}`;
   document.getElementById('res-tanks').textContent = Math.ceil(tanks);
