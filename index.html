@@ -422,17 +422,36 @@
 
   <!-- Input Card -->
   <div class="card">
-    <div class="card-title" id="lbl-landsize">Land Size</div>
-
-    <div class="unit-toggle">
-      <button class="unit-btn active" onclick="setUnit('ha')" id="btn-ha" data-en="Hectares (ha)" data-rw="Hegitare (ha)">Hectares (ha)</button>
-      <button class="unit-btn" onclick="setUnit('sqm')" id="btn-sqm" data-en="Square Metres (m²)" data-rw="Metero kare (m²)">Square Metres (m²)</button>
+    <div class="card-title" id="lbl-croptype">Crop Type</div>
+    <div class="unit-toggle" style="margin-bottom:18px;">
+      <button class="unit-btn active" onclick="setCrop('general')" id="btn-crop-general">🌿 Other Crops (by land size)</button>
+      <button class="unit-btn" onclick="setCrop('coffee')" id="btn-crop-coffee">☕ Coffee (by trees)</button>
     </div>
 
-    <div class="input-group" style="margin-bottom:16px;">
-      <label id="input-label">Enter land size in hectares</label>
-      <input type="number" id="landInput" placeholder="e.g. 0.5" min="0" step="any" inputmode="decimal">
-      <div class="unit-label" id="unit-hint">Decimal for fractions → 0.5 ha = half hectare</div>
+    <!-- Area-based input (General crops) -->
+    <div id="areaInputBlock">
+      <div class="card-title" id="lbl-landsize">Land Size</div>
+
+      <div class="unit-toggle">
+        <button class="unit-btn active" onclick="setUnit('ha')" id="btn-ha" data-en="Hectares (ha)" data-rw="Hegitare (ha)">Hectares (ha)</button>
+        <button class="unit-btn" onclick="setUnit('sqm')" id="btn-sqm" data-en="Square Metres (m²)" data-rw="Metero kare (m²)">Square Metres (m²)</button>
+      </div>
+
+      <div class="input-group" style="margin-bottom:16px;">
+        <label id="input-label">Enter land size in hectares</label>
+        <input type="number" id="landInput" placeholder="e.g. 0.5" min="0" step="any" inputmode="decimal">
+        <div class="unit-label" id="unit-hint">Decimal for fractions → 0.5 ha = half hectare</div>
+      </div>
+    </div>
+
+    <!-- Tree-based input (Coffee) -->
+    <div id="treeInputBlock" style="display:none;">
+      <div class="card-title" id="lbl-treecount">Number of Coffee Trees</div>
+      <div class="input-group" style="margin-bottom:16px;">
+        <label id="tree-input-label">Enter number of coffee trees</label>
+        <input type="number" id="treeInput" placeholder="e.g. 500" min="0" step="1" inputmode="numeric">
+        <div class="unit-label" id="tree-hint">e.g. 2500 trees = full base rate</div>
+      </div>
     </div>
 
     <div class="input-group">
@@ -496,11 +515,11 @@
       <div class="card-title" id="lbl-ref">Rate Reference</div>
       <div class="formula-row">
         <span id="ref-osl-label">OSL per hectare</span>
-        <span>250g = 62.5 caps</span>
+        <span id="ref-osl-val">250g = 62.5 caps</span>
       </div>
       <div class="formula-row">
         <span id="ref-water-label">Water per hectare</span>
-        <span>400 litres</span>
+        <span id="ref-water-rate-val">400 litres</span>
       </div>
       <div class="formula-row">
         <span id="ref-cap-label">1 cap weight</span>
@@ -540,6 +559,20 @@ const T = {
     litres: 'litres per knapsack sprayer',
     frequency: 'Spray Frequency',
     times: 'times this season',
+    croptype: 'Crop Type',
+    crop_general: '🌿 Other Crops (by land size)',
+    crop_coffee: '☕ Coffee (by trees)',
+    treecount: 'Number of Coffee Trees',
+    tree_input_label: 'Enter number of coffee trees',
+    tree_hint: 'e.g. 2500 trees = full base rate',
+    tree_placeholder: 'e.g. 500',
+    alert_trees: 'Please enter a valid number of trees.',
+    ref_osl_area: '250g = 62.5 caps',
+    ref_osl_coffee: '250g per 2500 trees',
+    ref_water_area_label: 'Water per hectare',
+    ref_water_coffee_label: 'Water per trees',
+    ref_water_area_val: '400 litres',
+    ref_water_coffee_val: '20L per 140 trees',
     calc: 'Calculate OSL & Water →',
     reset: '↺ New Calculation',
     ref: 'Rate Reference',
@@ -579,6 +612,20 @@ const T = {
     litres: 'litiro muri buri pompo',
     frequency: 'Inshuro uzatera',
     times: 'inshuro muri iki gihembwe',
+    croptype: 'Ubwoko bw\'igihingwa',
+    crop_general: '🌿 Ibindi bihingwa (ku butaka)',
+    crop_coffee: '☕ Ikawa (ku biti)',
+    treecount: 'Umubare w\'ibiti by\'ikawa',
+    tree_input_label: 'Injiza umubare w\'ibiti by\'ikawa',
+    tree_hint: 'urugero: ibiti 2500 = igipimo cyuzuye',
+    tree_placeholder: 'urugero: 500',
+    alert_trees: 'Injiza umubare nyawo w\'ibiti.',
+    ref_osl_area: '250g = udufuniko 62.5',
+    ref_osl_coffee: '250g kuri biti 2500',
+    ref_water_area_label: 'Amazi kuri hegitare',
+    ref_water_coffee_label: 'Amazi ku biti',
+    ref_water_area_val: 'litiro 400',
+    ref_water_coffee_val: 'L20 kuri biti 140',
     calc: 'Karikira →',
     reset: '↺ Karikira bushyashya',
     ref: 'Umusoro w\'ibanze',
@@ -614,6 +661,7 @@ const T = {
 // ─── STATE ───────────────────────────────────────────────────────
 let lang = 'en';
 let currentUnit = 'ha';
+let currentCrop = 'general';
 
 // ─── LANGUAGE ────────────────────────────────────────────────────
 function setLang(l) {
@@ -633,6 +681,13 @@ function applyTranslations() {
   document.getElementById('lbl-litres').textContent = t.litres;
   document.getElementById('lbl-frequency').textContent = t.frequency;
   document.getElementById('lbl-times').textContent = t.times;
+  document.getElementById('lbl-croptype').textContent = t.croptype;
+  document.getElementById('btn-crop-general').textContent = t.crop_general;
+  document.getElementById('btn-crop-coffee').textContent = t.crop_coffee;
+  document.getElementById('lbl-treecount').textContent = t.treecount;
+  document.getElementById('tree-input-label').textContent = t.tree_input_label;
+  document.getElementById('tree-hint').textContent = t.tree_hint;
+  document.getElementById('treeInput').placeholder = t.tree_placeholder;
   document.getElementById('btn-calc').textContent = t.calc;
   document.getElementById('btn-reset').textContent = t.reset;
   document.getElementById('lbl-ref').textContent = t.ref;
@@ -657,6 +712,33 @@ function applyTranslations() {
 
   // Update dynamic hint/label
   updateUnitLabels();
+  updateRateReferenceLabels();
+}
+
+// ─── CROP TYPE TOGGLE ────────────────────────────────────────────
+function setCrop(crop) {
+  currentCrop = crop;
+  document.getElementById('btn-crop-general').classList.toggle('active', crop === 'general');
+  document.getElementById('btn-crop-coffee').classList.toggle('active', crop === 'coffee');
+  document.getElementById('areaInputBlock').style.display = crop === 'general' ? 'block' : 'none';
+  document.getElementById('treeInputBlock').style.display = crop === 'coffee' ? 'block' : 'none';
+  updateRateReferenceLabels();
+  hideResults();
+}
+
+function updateRateReferenceLabels() {
+  const t = T[lang];
+  if (currentCrop === 'coffee') {
+    document.getElementById('ref-osl-label').textContent = t.ref_osl;
+    document.getElementById('ref-osl-val').textContent = t.ref_osl_coffee;
+    document.getElementById('ref-water-label').textContent = t.ref_water_coffee_label;
+    document.getElementById('ref-water-rate-val').textContent = t.ref_water_coffee_val;
+  } else {
+    document.getElementById('ref-osl-label').textContent = t.ref_osl;
+    document.getElementById('ref-osl-val').textContent = t.ref_osl_area;
+    document.getElementById('ref-water-label').textContent = t.ref_water;
+    document.getElementById('ref-water-rate-val').textContent = t.ref_water_area_val;
+  }
 }
 
 // ─── UNIT TOGGLE ─────────────────────────────────────────────────
@@ -679,23 +761,37 @@ function updateUnitLabels() {
 
 // ─── CALCULATE ───────────────────────────────────────────────────
 function calculate() {
-  const val = parseFloat(document.getElementById('landInput').value);
   const sprayerSize = parseFloat(document.getElementById('sprayerSize').value) || 20;
   const frequency = parseInt(document.getElementById('frequency').value) || 1;
   const t = T[lang];
 
-  if (!val || val <= 0) { alert(t.alert); return; }
+  let grams, water, ha, val;
 
-  const ha = currentUnit === 'sqm' ? val / 10000 : val;
-  const grams = ha * 250 * frequency;
+  if (currentCrop === 'coffee') {
+    const trees = parseFloat(document.getElementById('treeInput').value);
+    if (!trees || trees <= 0) { alert(t.alert_trees); return; }
+    grams = (trees / 2500) * 250 * frequency;
+    water = (trees / 140) * 20 * frequency;
+  } else {
+    val = parseFloat(document.getElementById('landInput').value);
+    if (!val || val <= 0) { alert(t.alert); return; }
+    ha = currentUnit === 'sqm' ? val / 10000 : val;
+    grams = ha * 250 * frequency;
+    water = ha * 400 * frequency;
+  }
+
   const caps = grams / 4;
-  const water = ha * 400 * frequency;
   const tanks = water / sprayerSize;
   const cpt = caps / tanks;
 
-  document.getElementById('res-caps').textContent = caps.toFixed(1);
+  document.getElementById('res-caps').textContent = caps.toFixed(2);
   document.getElementById('res-water').textContent = Math.round(water);
-  document.getElementById('res-water-sub').textContent = `${ha.toFixed(3)} ha × ${frequency} ${frequency === 1 ? t.time_singular : t.time_plural}`;
+  if (currentCrop === 'coffee') {
+    const trees = parseFloat(document.getElementById('treeInput').value);
+    document.getElementById('res-water-sub').textContent = `${trees} trees × ${frequency} ${frequency === 1 ? t.time_singular : t.time_plural}`;
+  } else {
+    document.getElementById('res-water-sub').textContent = `${ha.toFixed(3)} ha × ${frequency} ${frequency === 1 ? t.time_singular : t.time_plural}`;
+  }
   document.getElementById('res-tanks').textContent = Math.ceil(tanks);
   document.getElementById('res-tanks-sub').textContent = `${sprayerSize}L ${t.each}`;
   document.getElementById('res-grams').textContent = grams;
@@ -704,7 +800,7 @@ function calculate() {
   document.getElementById('ref-frequency-val').textContent = `${frequency} ${frequency === 1 ? t.time_singular : t.time_plural}`;
 
   const summary = document.getElementById('landSummary');
-  if (currentUnit === 'sqm') {
+  if (currentCrop === 'general' && currentUnit === 'sqm') {
     summary.textContent = `${val.toLocaleString()} m² = ${ha.toFixed(4)} ha`;
     summary.classList.add('show');
   } else {
@@ -721,12 +817,17 @@ function hideResults() {
 
 function reset() {
   document.getElementById('landInput').value = '';
+  document.getElementById('treeInput').value = '';
   document.getElementById('frequency').value = '1';
   hideResults();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.getElementById('landInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') calculate();
+});
+
+document.getElementById('treeInput').addEventListener('keypress', e => {
   if (e.key === 'Enter') calculate();
 });
 
